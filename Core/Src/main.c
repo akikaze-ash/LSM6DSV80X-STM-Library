@@ -114,9 +114,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint16_t adrRead = 0b11010101;
-  uint16_t adrWrite = 0b11010100;
-  uint8_t regTest = 0x1E;
+  uint16_t adrRead = 0b11010111;
+  uint16_t adrWrite = 0b11010110;
+  uint8_t regTest = 0x12;
   uint16_t regGyro[] = {0x22, 0x23, 0x24, 0x25, 0x26, 0x27};
   uint16_t regAccel[] = {0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D};
   uint16_t regEnable[] = {0x10, 0x11, 0x15, 0x16, 0x17, 0x02, 0x12};
@@ -134,16 +134,16 @@ int main(void)
 
 
   //Enable relevant sensors
-  //HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[7], 1, &value1, 1, 500);
+  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[6], 1, &value1, 1, 500);
   HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[0], 1, &value7, 1, 500);
   HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[1], 1, &value7, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[3], 1, &value9, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[6], 1, &value3, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[7], 1, &value4, 1, 500);
+  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[2], 1, &value9, 1, 500);
+  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[5], 1, &value3, 1, 500);
+  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[6], 1, &value4, 1, 500);
 
   //  //Enable filters
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[4], 1, &value1, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[5], 1, &value0, 1, 500);
+  //HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[4], 1, &value1, 1, 500);
+  //HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[5], 1, &value0, 1, 500);
 
 
   while (1)
@@ -166,9 +166,9 @@ int main(void)
     int16_t gyroZ = (int16_t)(regGyroZ1 << 8) | regGyroZ2;
 
     // Print all gyro values
-    printf("the gyro X value is %i\n\r", gyroX);
-    printf("the gyro Y value is %i\n\r", gyroY);
-    printf("the gyro Z value is %i\n\n\r", gyroZ);
+    printf("the gyro X value is %x\n\r", gyroX);
+    printf("the gyro Y value is %x\n\r", gyroY);
+    printf("the gyro Z value is %x\n\n\r", gyroZ);
 
     //// ACCELEROMETER VALUES
     // Read accelerometers X values then combine
@@ -187,9 +187,9 @@ int main(void)
     int16_t accelZ = (int16_t)(regAccelZ1 << 8) | regAccelZ2;
 
     // Print all accel values
-    printf("the accel X value is %i\n\r", accelX);
-    printf("the accel Y value is %i\n\r", accelY);
-    printf("the accel Z value is %i\n\n\n\r", accelZ);
+    printf("the accel X value is %x\n\r", accelX);
+    printf("the accel Y value is %x\n\r", accelY);
+    printf("the accel Z value is %x\n\n\n\r", accelZ);
 
 	  HAL_I2C_Mem_Read(&hi2c1, adrRead, regTest, 1, &readreg, 1, 1000);
 	  printf("The value is %x\n\n\n\r", readreg);
