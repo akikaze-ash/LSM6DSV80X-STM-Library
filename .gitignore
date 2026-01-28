@@ -10,6 +10,8 @@ debug/
 Release/
 release
 build/
+.vscode/
+.stm32env
 
 # Prerequisites
 *.d
