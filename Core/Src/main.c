@@ -32,6 +32,51 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+// conversion constants 
+#define TEMP_C 0.00390625
+#define ACCEL_G 0.061
+#define GYRO_DPS 0.00875
+
+// device registries
+#define ADDR_READ 0b11010101
+#define ADDR_WRITE 0b11010100
+
+// registries for enable writing
+#define CTRL_RESET_REG 0x12
+#define ACCEL_CTRL_REG 0x10
+#define GYRO_CTRL_REG 0x11
+#define GYRO_DPS_REG 0x15
+#define GYRO_FILTER_REG 0x16
+#define ACCEL_FILTER_REG 0x17
+
+// values for enable writing
+#define CONF_RESET 0b00000001
+#define GRYO_240HZ 0b00000111
+#define GYRO_250DPS 0b00001001
+#define GYRO_ENABLE_FILTER 0b00000001
+#define ACCEL_240HZ 0b00000111
+#define ACCEL_ENABLE_FILTER 0b00000000
+
+// addresses for gryo values
+#define ADDR_GRYO_X1 0x22
+#define ADDR_GRYO_X2 0x23
+#define ADDR_GRYO_Y1 0x24
+#define ADDR_GRYO_Y2 0x25
+#define ADDR_GRYO_Z1 0x26
+#define ADDR_GRYO_Z2 0x27
+
+// addresses for gryo values
+#define ADDR_ACCEL_X1 0x28
+#define ADDR_ACCEL_X2 0x29
+#define ADDR_ACCEL_Y1 0x2A
+#define ADDR_ACCEL_Y2 0x2B
+#define ADDR_ACCEL_Z1 0x2C
+#define ADDR_ACCEL_Z2 0x2D
+
+// addresses for temperature sensor values
+#define ADDR_TEMP1 0x20
+#define ADDR_TEMP2 0x21
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -115,105 +160,96 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  //// All relevant addresses and pointers
-  // read/write
-  uint16_t adrRead = 0b11010101;
-  uint16_t adrWrite = 0b11010100;
-  // read/write registers addresses
-  uint16_t regGyro[] = {0x22, 0x23, 0x24, 0x25, 0x26, 0x27};
-  uint16_t regAccel[] = {0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D};
-  uint16_t regEnable[] = {0x10, 0x11, 0x15, 0x16, 0x17, 0x02, 0x12};
   // pointers
   uint8_t regGyroX1, regGyroX2, regGyroY1, regGyroY2, regGyroZ1, regGyroZ2;
   uint8_t regAccelX1, regAccelX2, regAccelY1, regAccelY2, regAccelZ1, regAccelZ2;
+  uint8_t regTemp1, regTemp2;
+  uint8_t writePointer;
 
   // test reg and pointer
   uint8_t regTest = 0x12;
   uint8_t readreg;
 
-  // Scaling values for the accelerometer and gyroscope
-  float accel_g = 0.061 / 1000.0;
-  float gyro_dps = 8.75 / 1000.0;
-
-  //Register values
-  uint8_t value0 = 0b00000000;
-  uint8_t value1 = 0b00000001;
-  uint8_t value2 = 0b00000010;
-  uint8_t value3 = 0b00000011;
-  uint8_t value4 = 0b00000100;
-  uint8_t value7 = 0b00000111;
-  uint8_t value9 = 0b00001001;
-
-
-  //Enable relevant sensors
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[6], 1, &value1, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[0], 1, &value7, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[1], 1, &value7, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[2], 1, &value9, 1, 500);
-  //HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[5], 1, &value3, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[6], 1, &value4, 1, 500);
-
-  //  //Enable filters
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[3], 1, &value1, 1, 500);
-  HAL_I2C_Mem_Write(&hi2c1, adrWrite, regEnable[4], 1, &value0, 1, 500);
+  // enable all sensors and filters
+  writePointer = CONF_RESET;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, CTRL_RESET_REG, 1, &writePointer, 1, 500);
+  writePointer = GRYO_240HZ;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, GYRO_CTRL_REG, 1, &writePointer, 1, 500);
+  writePointer = GYRO_250DPS;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, GYRO_DPS_REG, 1, &writePointer, 1, 500);
+  writePointer = GYRO_FILTER_REG;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, GYRO_FILTER_REG, 1, &writePointer, 1, 500);
+  writePointer = ACCEL_CTRL_REG;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, ACCEL_240HZ, 1, &writePointer, 1, 500);
+  writePointer = ACCEL_ENABLE_FILTER;
+  HAL_I2C_Mem_Write(&hi2c1, ADDR_WRITE, ACCEL_FILTER_REG, 1, &writePointer, 1, 500);
 
 
   while (1)
   {
-
     //// GYRO VALUES
     // Read gyroscope X values then combine
-	  HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[0], 1, &regGyroX1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[1], 1, &regGyroX2, 1, 1000); 
-    int16_t gyroX = (int16_t)(regGyroX2 << 8) | regGyroX1;
+	  HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_X1, 1, &regGyroX1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_X2, 1, &regGyroX2, 1, 1000); 
+    int16_t gyroXraw = (int16_t)(regGyroX2 << 8) | regGyroX1;
 
     // Read gyroscope Y values then combine
-	  HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[2], 1, &regGyroY1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[3], 1, &regGyroY2, 1, 1000);
-    int16_t gyroY = (int16_t)(regGyroY2 << 8) | regGyroY1;
+	  HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_Y1, 1, &regGyroY1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_Y2, 1, &regGyroY2, 1, 1000);
+    int16_t gyroYraw = (int16_t)(regGyroY2 << 8) | regGyroY1;
 
     // Read gyroscope Y values then combine
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[4], 1, &regGyroZ1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regGyro[5], 1, &regGyroZ2, 1, 1000);
-    int16_t gyroZ = (int16_t)(regGyroZ2 << 8) | regGyroZ1;
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_Z1, 1, &regGyroZ1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_GRYO_Z2, 1, &regGyroZ2, 1, 1000);
+    int16_t gyroZraw = (int16_t)(regGyroZ2 << 8) | regGyroZ1;
 
     // Make all gyro values readable
-    gyroX=gyroX*gyro_dps;
-    gyroY=gyroY*gyro_dps;
-    gyroZ=gyroZ*gyro_dps;
+    float gyroX=gyroXraw*GYRO_DPS;
+    float gyroY=gyroYraw*GYRO_DPS;
+    float gyroZ=gyroZraw*GYRO_DPS;
 
     // Print all gyro values
-    printf("the gyro X value is %i\n\r", gyroX);
-    printf("the gyro Y value is %i\n\r", gyroY);
-    printf("the gyro Z value is %i\n\n\r", gyroZ);
+    printf("the gyro X value is %f\n\r", gyroX);
+    printf("the gyro Y value is %f\n\r", gyroY);
+    printf("the gyro Z value is %f\n\n\r", gyroZ);
 
     //// ACCELEROMETER VALUES
     // Read accelerometers X values then combine
-	  HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[0], 1, &regAccelX1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[1], 1, &regAccelX2, 1, 1000); 
-    int16_t accelX = (int16_t)(regAccelX2 << 8) | regAccelX1;
+	  HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_X1, 1, &regAccelX1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_X2, 1, &regAccelX2, 1, 1000); 
+    int16_t accelXraw = (int16_t)(regAccelX2 << 8) | regAccelX1;
 
     // Read accelerometers Y values then combine
-	  HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[2], 1, &regAccelY1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[3], 1, &regAccelY2, 1, 1000);
-    int16_t accelY = (int16_t)(regAccelY2 << 8) | regAccelY1;
+	  HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_Y1, 1, &regAccelY1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_Y2, 1, &regAccelY2, 1, 1000);
+    int16_t accelYraw = (int16_t)(regAccelY2 << 8) | regAccelY1;
 
     // Read accelerometers Y values then combine
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[4], 1, &regAccelZ1, 1, 1000);
-    HAL_I2C_Mem_Read(&hi2c1, adrRead, regAccel[5], 1, &regAccelZ2, 1, 1000);
-    int16_t accelZ = (int16_t)(regAccelZ2 << 8) | regAccelZ1;
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_Z1, 1, &regAccelZ1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_ACCEL_Z2, 1, &regAccelZ2, 1, 1000);
+    int16_t accelZraw = (int16_t)(regAccelZ2 << 8) | regAccelZ1;
 
     // Make all accel values readable
-    // accelX=accelX*accel_g;
-    // accelY=accelY*accel_g;
-    // accelZ=accelZ*accel_g;
+    float accelX=accelXraw*ACCEL_G;
+    float accelY=accelYraw*ACCEL_G;
+    float accelZ=accelZraw*ACCEL_G;
     
-
     // Print all accel values
-    printf("the accel X value is %i\n\r", accelX);
-    printf("the accel Y value is %i\n\r", accelY);
-    printf("the accel Z value is %i\n\n\n\r", accelZ);
+    printf("the accel X value is %f\n\r", accelX);
+    printf("the accel Y value is %f\n\r", accelY);
+    printf("the accel Z value is %f\n\n\n\r", accelZ);
 
+
+    // Read temperature
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_TEMP1, 1, &regTemp1, 1, 1000);
+    HAL_I2C_Mem_Read(&hi2c1, ADDR_READ, ADDR_TEMP2, 1, &regTemp2, 1, 1000);
+    int16_t tempRaw = (int16_t)(regTemp2 << 8) | regTemp1;
+
+    // convert to human units
+    float temp=tempRaw*TEMP_C+25; // this is the coversion factor dont ask
+
+    // Print temp value
+    printf("the temp value is %f\n\n\r", temp);
 
 
     // Test registry. Uncomment as needed. Nothing is enabled to accomodate. Currently viewing settings for ctrl1

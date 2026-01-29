@@ -6,16 +6,16 @@ This branch is the code considered either in testing, nonfunctional, or otherwis
 Only upload new code to unstable until tested to be ready for main branch
 Please remember to pull before pushing changes
 
-### UPDATE THE TODO WHEN YOU MAKE CHANGES
+## UPDATE THE TODO WHEN YOU MAKE CHANGES
 
-I didn't think we'd get this far tbh
+### I didn't think we'd get this far tbh
 
 ## TODO:
 - ~Data size error~
 - ~Now, gyroscope and accelerometer not enabling~
 - ~Combine recieved data into 16 bits~ 
 - ~Process hex data into standard decimal~
-- ~Test if data is correct~ Gyro seems to be, accel may not be
-- Long term: machine learning rules etc
+- ~Test if data is correct~ 
+- Machine learning rules etc
 
-### VALUES ARE COMING THROUGH!!!!
+### Data is coming through, now for machine learning
