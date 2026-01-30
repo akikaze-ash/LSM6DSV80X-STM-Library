@@ -1,6 +1,5 @@
 #ifndef IMU_SENSOR_READ
 #define IMU_SENSOR_READ
-#endif
 
 
 
@@ -79,3 +78,5 @@ float readAccelZ(I2C_HandleTypeDef *hi2c1);
 
 // function to read the imu temp sensor
 float readTempIMU(I2C_HandleTypeDef *hi2c1);
+
+#endif
